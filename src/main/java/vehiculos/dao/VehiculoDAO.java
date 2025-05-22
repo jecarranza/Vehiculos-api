@@ -8,9 +8,18 @@ import java.util.List;
 
 public class VehiculoDAO {
 
-    private final static String URL = "jdbc:mysql://localhost:3308/vehiculos_db";
+    private final static String URL = "jdbc:mysql://localhost:3306/vehiculos_db";
     private final static String USER = "root";
-    private final static String PASS = "root";
+    private final static String PASS = "123456789";
+
+
+    static {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("No se pudo cargar el driver JDBC de MySQL", e);
+        }
+    }
 
     public List<Vehiculo> obtenerTodos() {
         List<Vehiculo> vehiculosList = new ArrayList<>();
@@ -33,26 +42,70 @@ public class VehiculoDAO {
 
                 vehiculosList.add(vehiculo);
 
-                resultSet.close();
-                statement.close();
-                connection.close();
             }
+
+            resultSet.close();
+            statement.close();
+            connection.close();
+
         }catch (SQLException e){
             e.printStackTrace();
         }
+
         return vehiculosList;
     }
 
-    public List<Vehiculo> insertarVehiculo(Vehiculo vehiculo) {
-        List<Vehiculo> vehiculosList = new ArrayList<>();
-        vehiculosList.add(vehiculo);
-        return vehiculosList;
+    public void guardarVehiculo(Vehiculo vehiculo){
+
+        String sqlAdd = "INSERT INTO vehiculos (marca, modelo, placa, anio) VALUES (?, ?, ?, ?)";
+
+        try(Connection connection = DriverManager.getConnection(URL, USER, PASS);
+        PreparedStatement preparedStatement = connection.prepareStatement(sqlAdd)) {
+            preparedStatement.setString(1, vehiculo.getMarca());
+            preparedStatement.setString(2, vehiculo.getModelo());
+            preparedStatement.setString(3, vehiculo.getPlaca());
+            preparedStatement.setInt(4, vehiculo.getAnio());
+
+            preparedStatement.executeUpdate();
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public List<Vehiculo> actualizarVehiculo(Vehiculo vehiculo) {
-        List<Vehiculo> vehiculosList = new ArrayList<>();
-        vehiculosList.remove(vehiculo);
-        vehiculosList.add(vehiculo);
-        return vehiculosList;
+    public void actualizarVehiculo(Vehiculo vehiculo){
+
+        String sqlUpdate = "UPDATE vehiculos SET marca = ?, modelo = ?, placa = ?, anio = ? WHERE id = ?";
+
+        try(Connection connection = DriverManager.getConnection(URL, USER, PASS);
+            PreparedStatement preparedStatement = connection.prepareStatement(sqlUpdate)) {
+
+            preparedStatement.setString(1, vehiculo.getMarca());
+            preparedStatement.setString(2, vehiculo.getModelo());
+            preparedStatement.setString(3, vehiculo.getPlaca());
+            preparedStatement.setInt(4, vehiculo.getAnio());
+            preparedStatement.setInt(5, vehiculo.getId());
+
+            preparedStatement.executeUpdate();
+
+        }catch (Exception e){
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    public void eliminarVehiculo(Vehiculo vehiculo){
+
+        String sqlDelete = "DELETE FROM vehiculos WHERE id = ?";
+
+        try(Connection connection = DriverManager.getConnection(URL, USER, PASS);
+            PreparedStatement preparedStatement = connection.prepareStatement(sqlDelete)) {
+
+            preparedStatement.setInt(1, vehiculo.getId());
+            preparedStatement.executeUpdate();
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

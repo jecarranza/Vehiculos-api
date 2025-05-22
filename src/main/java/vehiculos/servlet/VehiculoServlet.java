@@ -28,11 +28,17 @@ public class VehiculoServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         List<Vehiculo> vehiculos = vehiculoDAO.obtenerTodos();
-        String json = objectMapper.writeValueAsString(vehiculos);
+        req.setAttribute("vehiculos", vehiculos);
+        req.getRequestDispatcher("vehiculo-list.jsp").forward(req, resp);
+        /*
+        prueba con postman ya que su escritura de pruebas viene con las pruebas de tipo JSON
+        String JSON = objectMapper.writeValueAsString(vehiculos);
 
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
-        resp.getWriter().write(json);
+        resp.getWriter().write(JSON);
+        */
+
     }
 
     @Override
@@ -40,8 +46,28 @@ public class VehiculoServlet extends HttpServlet {
 
         BufferedReader reader = req.getReader();
         Vehiculo vehiculo = objectMapper.readValue(reader, Vehiculo.class);
-        vehiculoDAO.actualizarVehiculo(vehiculo);
+        vehiculoDAO.guardarVehiculo(vehiculo);
 
         resp.setStatus(HttpServletResponse.SC_CREATED);
+    }
+
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+        BufferedReader reader = req.getReader();
+        Vehiculo vehiculo = objectMapper.readValue(reader, Vehiculo.class);
+        vehiculoDAO.actualizarVehiculo(vehiculo);
+
+        resp.setStatus(HttpServletResponse.SC_OK);
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
+
+        BufferedReader reader = req.getReader();
+        Vehiculo vehiculo = objectMapper.readValue(reader, Vehiculo.class);
+        vehiculoDAO.eliminarVehiculo(vehiculo);
+
+        resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
     }
 }
