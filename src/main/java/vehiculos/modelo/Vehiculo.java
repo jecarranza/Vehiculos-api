@@ -12,11 +12,18 @@ public class Vehiculo {
 
     }
 
-    public Vehiculo(int id, String placa, String marca, String modelo, int anio) {
+    public Vehiculo(int id, String marca, String modelo, String placa, int anio) {
         this.id = id;
-        this.placa = placa;
         this.marca = marca;
         this.modelo = modelo;
+        this.placa = placa;
+        this.anio = anio;
+    }
+
+    public Vehiculo(String marca, String modelo, String placa, int anio) {
+        this.marca = marca;
+        this.modelo = modelo;
+        this.placa = placa;
         this.anio = anio;
     }
 

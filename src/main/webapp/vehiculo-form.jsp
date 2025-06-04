@@ -9,74 +9,155 @@
 <%@ page import="vehiculos.modelo.Vehiculo" %>
 
 <%
-    // Obtenemos el vehículo desde el request si viene para edición
+    // Obtenemos el vehículo desde el request, si existe (es edición)
     Vehiculo vehiculo = (Vehiculo) request.getAttribute("vehiculo");
 
-    // Definimos variables que se llenarán si se edita
-    String id = vehiculo != null ? String.valueOf(vehiculo.getId()) : "";
+    // Si hay vehículo (es edición), tomamos sus datos; si no, dejamos por defecto
+    int id = vehiculo != null ? vehiculo.getId() : 0;
     String marca = vehiculo != null ? vehiculo.getMarca() : "";
     String modelo = vehiculo != null ? vehiculo.getModelo() : "";
     String placa = vehiculo != null ? vehiculo.getPlaca() : "";
     int anio = vehiculo != null ? vehiculo.getAnio() : 0;
+
+    // Determinamos si es edición o nuevo
+    boolean esEdicion = vehiculo != null;
 %>
 
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title><%= id.isEmpty() ? "Agregar" : "Editar" %> Vehículo</title>
+    <title><%= esEdicion ? "Editar" : "Agregar" %> Vehículo</title>
+
     <style>
-        form {
-            max-width: 500px;
-            margin: auto;
+        /* Estilo general para el body */
+        body {
+            background-image: url("https://img.freepik.com/fotos-premium/coche-moderno-negro-sobre-fondo-negro-generativo-ai_39665-640.jpg"); /* fondo de una imagen automovilista */
+            background-size: cover;      /* hace que la imagen cubra toda la pantalla */
+            background-repeat: no-repeat; /* evita que se repita la imagen */
+            background-position: center center; /* centra la imagen tanto horizontal como verticalmente */
+            background-attachment: fixed; /* mantiene la imagen fija al hacer scroll */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* fuente moderna */
+            padding: 30px; /* espacio alrededor del contenido */
         }
 
-        label, input {
-            display: block;
-            width: 100%;
-            margin-bottom: 10px;
+        /* Contenedor del formulario centrado */
+        .form-container {
+            background-color: #ffffff; /* fondo blanco */
+            max-width: 600px; /* ancho máximo del formulario */
+            margin: auto; /* centrar horizontalmente */
+            padding: 30px; /* espacio interno */
+            border-radius: 10px; /* bordes redondeados */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* sombra suave */
         }
 
+        /* Título del formulario */
+        h2 {
+            text-align: center; /* centrar texto */
+            color: #333333; /* color oscuro */
+            margin-bottom: 25px; /* espacio debajo del título */
+        }
+
+        /* Estilo para cada grupo de campos */
+        .form-group {
+            margin-bottom: 20px; /* espacio entre campos */
+        }
+
+        /* Estilo para las etiquetas */
+        label {
+            display: block; /* cada etiqueta en su propia línea */
+            margin-bottom: 5px; /* espacio entre la etiqueta y el input */
+            color: #555555; /* gris medio */
+            font-weight: bold; /* texto en negrita */
+        }
+
+        /* Estilo para los inputs */
+        input[type="text"],
+        input[type="number"] {
+            width: 100%; /* que ocupe todo el ancho del contenedor */
+            padding: 10px; /* espacio interno */
+            border: 1px solid #ccc; /* borde gris claro */
+            border-radius: 5px; /* bordes redondeados */
+            font-size: 16px; /* tamaño de letra */
+        }
+
+        /* Botón principal de envío */
         input[type="submit"] {
-            background-color: green;
-            color: white;
-            padding: 8px;
+            width: 100%; /* que ocupe todo el ancho */
+            padding: 12px;
+            background-color: #28a745; /* verde */
+            color: white; /* texto blanco */
             border: none;
             border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer; /* cambia el cursor a una mano */
+            transition: background-color 0.3s ease; /* animación suave al pasar el mouse */
         }
 
-        a {
+        /* Efecto hover para el botón */
+        input[type="submit"]:hover {
+            background-color: #218838; /* verde más oscuro al pasar el mouse */
+        }
+
+        /* Enlace para volver */
+        .back-link {
             display: block;
             text-align: center;
-            margin-top: 10px;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #007bff; /* azul */
+        }
+
+        .back-link:hover {
+            text-decoration: underline; /* subrayado al pasar el mouse */
         }
     </style>
 </head>
 <body>
 
-<h2 style="text-align: center;"><%= id.isEmpty() ? "Agregar" : "Editar" %> Vehículo</h2>
+<div class="form-container">
+    <h2><%= esEdicion ? "Editar" : "Agregar" %> Vehículo</h2>
 
-<form action="vehiculos" method="post">
-    <!-- Si hay ID, lo incluimos oculto -->
-    <input type="hidden" name="id" value="<%= id %>">
+    <!-- Formulario para crear o editar un vehículo -->
+    <form action="vehiculos" method="post">
 
-    <label for="marca">Marca:</label>
-    <input type="text" name="marca" id="marca" required value="<%= marca %>">
+        <%-- Si es edición, incluir campos ocultos con id y método PUT --%>
+        <% if (esEdicion) { %>
+        <input type="hidden" name="id" value="<%= id %>">
+        <input type="hidden" name="_method" value="PUT">
+        <% } %>
 
-    <label for="modelo">Modelo:</label>
-    <input type="text" name="modelo" id="modelo" required value="<%= modelo %>">
+        <!-- Campo: Marca del vehículo -->
+        <div class="form-group">
+            <label for="marca">Marca:</label>
+            <input type="text" id="marca" name="marca" required value="<%= marca %>">
+        </div>
 
-    <label for="placa">Placa:</label>
-    <input type="text" name="placa" id="placa" required value="<%= placa %>">
+        <!-- Campo: Modelo del vehículo -->
+        <div class="form-group">
+            <label for="modelo">Modelo:</label>
+            <input type="text" id="modelo" name="modelo" required value="<%= modelo %>">
+        </div>
 
-    <label for="anio">Año:</label>
-    <input type="number" name="anio" id="anio" required value="<%= anio == 0 ? "" : anio %>">
+        <!-- Campo: Placa del vehículo -->
+        <div class="form-group">
+            <label for="placa">Placa:</label>
+            <input type="text" id="placa" name="placa" required value="<%= placa %>">
+        </div>
 
-    <input type="submit" value="<%= id.isEmpty() ? "Guardar" : "Actualizar" %>">
-</form>
+        <!-- Campo: Año del vehículo -->
+        <div class="form-group">
+            <label for="anio">Año:</label>
+            <input type="number" id="anio" name="anio" required value="<%= anio != 0 ? anio : "" %>">
+        </div>
 
-<a href="vehiculos">Volver a la lista</a>
+        <!-- Botón para enviar el formulario -->
+        <input type="submit" value="<%= esEdicion ? "Actualizar" : "Guardar" %>">
+    </form>
+
+    <!-- Enlace para volver a la lista -->
+    <a href="vehiculos" class="back-link">← Volver a la lista de vehículos</a>
+</div>
 
 </body>
 </html>
-

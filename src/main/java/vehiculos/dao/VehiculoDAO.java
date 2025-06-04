@@ -10,7 +10,7 @@ public class VehiculoDAO {
 
     private final static String URL = "jdbc:mysql://localhost:3306/vehiculos_db";
     private final static String USER = "root";
-    private final static String PASS = "123456789";
+    private final static String PASS = "Pancho5510";
 
 
     static {
@@ -53,6 +53,34 @@ public class VehiculoDAO {
         }
 
         return vehiculosList;
+    }
+
+    public Vehiculo obtenerPorId(int id) {
+        Vehiculo vehiculo = null;
+        String sql = "SELECT * FROM vehiculos WHERE id = ?";
+
+        try (Connection connection = DriverManager.getConnection(URL, USER, PASS);
+        PreparedStatement statement = connection.prepareStatement(sql)){
+
+            statement.setInt(1, id);
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()){
+                vehiculo = new Vehiculo();
+                vehiculo.setId(resultSet.getInt("id"));
+                vehiculo.setMarca(resultSet.getString("marca"));
+                vehiculo.setModelo(resultSet.getString("modelo"));
+                vehiculo.setPlaca(resultSet.getString("placa"));
+                vehiculo.setAnio(resultSet.getInt("anio"));
+            }
+
+            resultSet.close();
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return vehiculo;
     }
 
     public void guardarVehiculo(Vehiculo vehiculo){

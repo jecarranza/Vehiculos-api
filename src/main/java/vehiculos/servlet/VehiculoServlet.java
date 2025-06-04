@@ -11,7 +11,6 @@ import vehiculos.modelo.Vehiculo;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @WebServlet("/vehiculos")
@@ -27,47 +26,113 @@ public class VehiculoServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        List<Vehiculo> vehiculos = vehiculoDAO.obtenerTodos();
-        req.setAttribute("vehiculos", vehiculos);
-        req.getRequestDispatcher("vehiculo-list.jsp").forward(req, resp);
-        /*
-        prueba con postman ya que su escritura de pruebas viene con las pruebas de tipo JSON
-        String JSON = objectMapper.writeValueAsString(vehiculos);
 
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-        resp.getWriter().write(JSON);
-        */
+        String idParam = req.getParameter("id");
+
+        if (idParam != null) {
+            int id = Integer.parseInt(idParam);
+            Vehiculo vehiculo = vehiculoDAO.obtenerPorId(id);
+
+            if (vehiculo != null) {
+                req.setAttribute("vehiculo", vehiculo);
+                req.getRequestDispatcher("vehiculo-form.jsp").forward(req, resp);
+            }else {
+                resp.sendRedirect("vehiculos");
+            }
+
+        }else {
+            List<Vehiculo> vehiculos = vehiculoDAO.obtenerTodos();
+
+            String accepHeader = req.getHeader("Accept");
+            if (accepHeader != null && accepHeader.contains("application/json")) {
+                String JSON = objectMapper.writeValueAsString(vehiculos);
+
+                resp.setContentType("application/json");
+                resp.setCharacterEncoding("UTF-8");
+                resp.getWriter().write(JSON);
+            }else {
+                req.setAttribute("vehiculos", vehiculos);
+                req.getRequestDispatcher("vehiculo-list.jsp").forward(req, resp);
+            }
+        }
 
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        BufferedReader reader = req.getReader();
-        Vehiculo vehiculo = objectMapper.readValue(reader, Vehiculo.class);
-        vehiculoDAO.guardarVehiculo(vehiculo);
+        String contentType = req.getContentType();
+        String method = req.getParameter("_method");
 
-        resp.setStatus(HttpServletResponse.SC_CREATED);
+        if (contentType != null && contentType.contains("application/json")) {
+            BufferedReader reader = req.getReader();
+            Vehiculo vehiculo = objectMapper.readValue(reader, Vehiculo.class);
+            vehiculoDAO.guardarVehiculo(vehiculo);
+            resp.setStatus(HttpServletResponse.SC_CREATED);
+        } else {
+            if ("PUT".equalsIgnoreCase(method)) {
+                doPut(req, resp); // Redirige internamente al método PUT
+            } else if ("DELETE".equalsIgnoreCase(method)) {
+                doDelete(req, resp);
+            } else {
+                // Crear nuevo vehículo (POST normal)
+                String marca = req.getParameter("marca");
+                String modelo = req.getParameter("modelo");
+                String placa = req.getParameter("placa");
+                int anio = Integer.parseInt(req.getParameter("anio"));
+
+                Vehiculo vehiculo = new Vehiculo(marca, modelo, placa, anio);
+                vehiculoDAO.guardarVehiculo(vehiculo);
+
+                resp.sendRedirect("vehiculos");
+            }
+        }
     }
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        BufferedReader reader = req.getReader();
-        Vehiculo vehiculo = objectMapper.readValue(reader, Vehiculo.class);
-        vehiculoDAO.actualizarVehiculo(vehiculo);
+        String contentType = req.getContentType();
 
-        resp.setStatus(HttpServletResponse.SC_OK);
+        if (contentType != null && contentType.contains("application/json")) {
+            BufferedReader reader = req.getReader();
+            Vehiculo vehiculo = objectMapper.readValue(reader, Vehiculo.class);
+            vehiculoDAO.actualizarVehiculo(vehiculo);
+
+            resp.setStatus(HttpServletResponse.SC_OK);
+        }else{
+
+            int id = Integer.parseInt(req.getParameter("id"));
+            String marca = req.getParameter("marca");
+            String modelo = req.getParameter("modelo");
+            String placa = req.getParameter("placa");
+            int anio = Integer.parseInt(req.getParameter("anio"));
+
+            Vehiculo vehiculo = new Vehiculo(id, marca, modelo, placa, anio);
+            vehiculo.setId(id);
+            vehiculoDAO.actualizarVehiculo(vehiculo);
+
+            resp.sendRedirect("vehiculos");
+        }
     }
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
 
-        BufferedReader reader = req.getReader();
-        Vehiculo vehiculo = objectMapper.readValue(reader, Vehiculo.class);
-        vehiculoDAO.eliminarVehiculo(vehiculo);
+        String contentType = req.getContentType();
 
-        resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        if (contentType != null && contentType.contains("application/json")) {
+            BufferedReader reader = req.getReader();
+            Vehiculo vehiculo = objectMapper.readValue(reader, Vehiculo.class);
+            vehiculoDAO.eliminarVehiculo(vehiculo);
+
+            resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }else {
+            int id = Integer.parseInt(req.getParameter("id"));
+            Vehiculo vehiculo = new Vehiculo();
+            vehiculo.setId(id);
+            vehiculoDAO.eliminarVehiculo(vehiculo);
+            resp.sendRedirect("vehiculos");
+        }
     }
 }
